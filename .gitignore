@@ -2,4 +2,4 @@ env/
 .gitignore
 auth.txt
 *.swp
-
+*.pyc
