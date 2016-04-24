@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelavent variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/ponkbrown/python/sandbox/musicbot/env"
+VIRTUAL_ENV="/home/pipe/feli/redditmusic/env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

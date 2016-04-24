@@ -1,0 +1,7 @@
+decorator==4.0.9
+mutagen==1.31
+praw==3.4.0
+requests==2.9.1
+six==1.10.0
+update-checker==0.11
+youtube-dl==2016.04.24
