@@ -3,10 +3,9 @@
 # cada dia.
 # 
 # Sat Apr 23 20:44:37 MST 2016
-import youtube_dl
 import praw
 import sys
-import os
+import subprocess
 
 # Buscando el id y el secret para usar el api de reddit de el archivo auth.txt
 
@@ -35,23 +34,10 @@ r = praw.Reddit(user_agent=user_agent)
 listentothis = r.get_subreddit('listentothis')
 hot = listentothis.get_hot(limit=5) # cuantos post hay que bajar
 
-# Configuracion de youtube-dl
-
-options = {
-	'format' : 'bestaudio/best',
-	'extractaudio' : True,
-	'audioformat' : 'mp3',
-	'noplaylist' : True
-}
-
 collection = []
 for post in hot:
     if type(post.media) == dict and post.media.get('type') == 'youtube.com':
         print(str(post.title) + ':' + str(post.url))
-        #bajando y convirtiendo a mp3
-        with youtube_dl.YoutubeDL(options) as ydl:
-            ydl.download([post.url])
-            os.system('mv *.mp3 mp3')
-
+        subprocess.call(['youtube-dl', '-x', str(post.url), '-o', './mp3/%(title)s.%(ext)s'])
         collection.append(post)
 
