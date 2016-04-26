@@ -64,4 +64,6 @@ def mediasubs(subreddit, num):
     for post in hot:
         if type(post.media) == dict and post.media.get('type'):
             collection.append(post)
+            if len(collection) == num:
+                break
     return collection        
