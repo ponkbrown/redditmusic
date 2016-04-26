@@ -6,6 +6,7 @@
 import praw
 import sys
 import subprocess
+import re
 
 # Buscando el id y el secret para usar el api de reddit de el archivo auth.txt
 
@@ -26,18 +27,41 @@ with open('auth.txt', 'r') as f:
         if line.split(' : ')[0].strip() == 'user':
             user = line.split(' : ')[1].strip()
 
-user_agent = platform + ':' + id + ':' + version + '(u {0})'.format(user)
+    user_agent = platform + ':' + id + ':' + version + '(u {0})'.format(user)
+    
+    
+def getMeta(post):
+    if not post.domain.startswith('self'):
+        patron = re.compile(r'(.+)\s-{1,2}\s(.+)\s\[(.+)\].*\((\d+)\)')
+        matcher = patron.search(post.title)
+        if matcher:
+            metadata = {
+            'artista' : matcher.group(1),
+            'titulo' : matcher.group(2),
+            'album' : post.subreddit.title,
+            'fecha' : matcher.group(4),
+            'genero': matcher.group(3),
+            'thumb' : post.thumbnail
+           } 
+            return metadata
+        else:
+            return "Sin Genero"
+    return 'post de reddit'
 
-r = praw.Reddit(user_agent=user_agent)
-
-# subreddit de musica
-listentothis = r.get_subreddit('listentothis')
-hot = listentothis.get_hot(limit=5) # cuantos post hay que bajar
-
-collection = []
-for post in hot:
-    if type(post.media) == dict and post.media.get('type') == 'youtube.com':
-        print(str(post.title) + ':' + str(post.url))
-        subprocess.call(['youtube-dl', '-x', str(post.url), '-o', './mp3/%(title)s.%(ext)s'])
-        collection.append(post)
-
+def getmp3(url, data):
+    try:
+        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', url, '-o', './mp3/%(title)s.%(ext)s'])
+    except 'FileNotFoundError':
+        print('Error')
+        return None
+    
+def mediasubs(subreddit, num):
+    r = praw.Reddit(user_agent=user_agent)
+    # subreddit de musica
+    activo = r.get_subreddit(subreddit)
+    hot = activo.get_hot(limit=num+10) # cuantos post hay que bajar
+    collection = []
+    for post in hot:
+        if type(post.media) == dict and post.media.get('type'):
+            collection.append(post)
+    return collection        
