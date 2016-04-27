@@ -32,7 +32,7 @@ with open('auth.txt', 'r') as f:
     
 def getMeta(post):
     if not post.domain.startswith('self'):
-        patron = re.compile(r'(.+)\s-{1,2}\s(.+)\s\[(.+)\].*\((\d+)\)')
+        patron = re.compile(r'(.+)\s-{1,2}\s(.+)\s*\[(.+)\].*\((\d+)\)')
         matcher = patron.search(post.title)
         if matcher:
             metadata = {
@@ -48,10 +48,10 @@ def getMeta(post):
             return "Sin Genero"
     return 'post de reddit'
 
-def getmp3(url, data):
+def getmp3(post, data=None):
     try:
-        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', url, '-o', './mp3/%(title)s.%(ext)s'])
-    except 'FileNotFoundError':
+        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', post.url, '-o', './mp3/%(title)s.%(ext)s'])
+    except:
         print('Error')
         return None
     
