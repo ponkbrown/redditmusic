@@ -7,6 +7,8 @@ import praw
 import sys
 import subprocess
 import re
+import urllib.request
+import youtube_dl
 
 # Buscando el id y el secret para usar el api de reddit de el archivo auth.txt
 
@@ -49,11 +51,17 @@ def getMeta(post):
     return 'post de reddit'
 
 def getmp3(post, data=None):
+    filename = './temp/'+post.title+'.mp3'
+    thumbnail = './temp/'+post.thumbnail.split('/')[-1]
     try:
-        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', post.url, '-o', './mp3/%(title)s.%(ext)s'])
+        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', post.url, '-o', filename])
     except:
         print('Error')
         return None
+    
+    # bajar el thumbnail
+    urllib.request.urlretrieve(post.thumbnail, thumbnail) 
+    
     
 def mediasubs(subreddit, num):
     r = praw.Reddit(user_agent=user_agent)
@@ -67,3 +75,34 @@ def mediasubs(subreddit, num):
             if len(collection) == num:
                 break
     return collection        
+
+class MyLogger(object):
+    def debug(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        print(msg)
+
+
+def my_hook(d):
+    if d['status'] == 'finished':
+        print('Done downloading, now converting ...')
+
+
+def videoyconvierte(songX):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': './temp/test.%(ext)s',
+        'logger': MyLogger(),
+        'progress_hooks': [my_hook],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([songX.url])
