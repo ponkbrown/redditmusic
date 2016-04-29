@@ -154,7 +154,7 @@ def putTag(songX, dataX):
     audio.tags.add(
             TALB(
                 encoding = 3,
-                text = [dataX['album']]
+                text = [datetime.datetime.today().strftime('SoundTrack-%d%B')]
                 )
             )
     audio.save()
@@ -162,14 +162,13 @@ def putTag(songX, dataX):
 def makeZip(dirOut, dirIn):
     today = datetime.datetime.today()
     filename = today.strftime('SoundTrack-%B%d%Y-%H%M.zip')
-    zipName = os.path.join('./mp3', filename)
+    os.chdir('temp/')
+    zipName = os.path.join('../mp3', filename)
 
     zipf = zipfile.ZipFile(zipName, 'w', zipfile.ZIP_DEFLATED)
 
-    os.chdir('temp/')
     for root, dirs, files in os.walk('./'):
         for file in files:
             if file.endswith('mp3'):
                 zipf.write(os.path.join(root,file))
-            else:
-                print('Borrando', os.path.join(root,file))
+    zipf.close()

@@ -1,7 +1,5 @@
 from app import *
 
-subprocess.call(['clear'])
-listentothis = mediasubs('listentousagain', 10)
 
 #for a in listentothis:
 #	print('\n'+'='*80+'\n',a.title)
@@ -13,19 +11,29 @@ listentothis = mediasubs('listentousagain', 10)
 #		getmp3(a)
 
 
-songX = listentothis[0]
-dataX = getMeta(songX)
+def bajalista(listentothis):
+    for song in listentothis:
+        data = getMeta(song)
+        if type(data) != dict:
+            print('+'*10+data+'+'*10)
+            continue
+        for tag in data.keys():
+            print(tag, data[tag])
+        videoyconvierte(song,data)
+        putTag(song,data)
+        print('='*20+'LISTO'+'='*20)
 
-for song in listentothis:
-    data = getMeta(song)
-    if type(data) != dict:
-        print('+'*10+data+'+'*10)
-        continue
-    for tag in data.keys():
-        print(tag, data[tag])
-    videoyconvierte(song,data)
-    putTag(song,data)
-    print('='*20+'LISTO'+'='*20)
+subprocess.call(['clear'])
 
+subreddits = [
+mediasubs('listentothis', 7),
+mediasubs('listentocurated', 7),
+mediasubs('listentousagain', 7)
+]
+
+for subs in subreddits:
+    bajalista(subs)
+
+makeZip(None,None)
 print('Fin, revisa el folder temp/ y si esta todo bien, escribe la funcion makeZip() AHORA!!')
 
