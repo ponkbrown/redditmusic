@@ -3,12 +3,15 @@
 # cada dia.
 # 
 # Sat Apr 23 20:44:37 MST 2016
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3, APIC, TPE1, TIT2, TCON, TALB, error
 import praw
 import sys
 import subprocess
 import re
 import urllib.request
 import youtube_dl
+import os, shutil
 
 # Buscando el id y el secret para usar el api de reddit de el archivo auth.txt
 
@@ -50,18 +53,6 @@ def getMeta(post):
             return "Sin Genero"
     return 'post de reddit'
 
-def getmp3(post, data=None):
-    filename = './temp/'+post.title+'.mp3'
-    thumbnail = './temp/'+post.thumbnail.split('/')[-1]
-    try:
-        subprocess.call(['youtube-dl', '-x', '--audio-format', 'mp3', post.url, '-o', filename])
-    except:
-        print('Error')
-        return None
-    
-    # bajar el thumbnail
-    urllib.request.urlretrieve(post.thumbnail, thumbnail) 
-    
     
 def mediasubs(subreddit, num):
     r = praw.Reddit(user_agent=user_agent)
@@ -92,7 +83,8 @@ def my_hook(d):
         print('Done downloading, now converting ...')
 
 
-def videoyconvierte(songX):
+def videoyconvierte(songX, dataX):
+    filename = dataX['artista'].strip()+' - '+dataX['titulo'].strip()
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -100,9 +92,73 @@ def videoyconvierte(songX):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'outtmpl': './temp/test.%(ext)s',
+        'outtmpl': './temp/'+filename+'.%(ext)s',
         'logger': MyLogger(),
         'progress_hooks': [my_hook],
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([songX.url])
+
+def putTag(songX, dataX):
+    filename = dataX['artista'].strip()+' - '+dataX['titulo'].strip()
+    
+
+    # bajamos el arte en ./temp
+    thumbnailURL = songX.thumbnail
+    thumbnailName = thumbnailURL.split('/')[-1]
+    urllib.request.urlretrieve(songX.thumbnail,'./temp/'+thumbnailName) 
+
+    #Agregar tags
+    audio = MP3('./temp/'+filename+'.mp3', ID3=ID3)
+
+    # Agrega un tag ID3 en caso de que no tenga
+    try:
+        audio.add_tags()
+    except error:
+        pass
+
+    # Determina el mime nomas puede ser image/jpeg o mime/png
+    if thumbnailName.endswith('png'):
+        mime = 'image/png'
+    elif thumbnailName.endswith('gif'):
+        mime = 'image/gif'
+    else:
+        mime = 'image/jpeg'
+
+    with open('./temp/'+thumbnailName, 'rb') as thumb:
+        arte = thumb.read()
+
+    audio.tags.add(
+            APIC(
+                encoding = 3, # 3 es para utf-8
+                mime = mime,
+                type = 3, # 3 es para la imagen de cover
+                desc = u'Cover',
+                data = arte
+                )
+            )
+    audio.tags.add(
+            TPE1(
+                encoding = 3,
+                text = [dataX['artista']]
+                )
+            )
+    audio.tags.add(
+            TIT2(
+                encoding = 3,
+                text = [dataX['titulo']]
+                )
+            )
+    audio.tags.add(
+            TCON(
+                encoding = 3,
+                text = [dataX['genero']]
+                )
+            )
+    audio.tags.add(
+            TALB(
+                encoding = 3,
+                text = [dataX['album']]
+                )
+            )
+    audio.save()
