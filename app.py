@@ -84,7 +84,7 @@ def my_hook(d):
 
 
 def videoyconvierte(songX, dataX):
-    filename = dataX['artista'].strip()+' - '+dataX['titulo'].strip()
+    filename = songX.subreddit.url.replace('/r/','')+dataX['artista'].strip()+' - '+dataX['titulo'].strip()
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -100,16 +100,14 @@ def videoyconvierte(songX, dataX):
         ydl.download([songX.url])
 
 def putTag(songX, dataX):
-    filename = dataX['artista'].strip()+' - '+dataX['titulo'].strip()
-    
-
+    filename = './temp/'+songX.subreddit.url.replace('/r/','')+dataX['artista'].strip()+' - '+dataX['titulo'].strip()+'.mp3'
     # bajamos el arte en ./temp
     thumbnailURL = songX.thumbnail
     thumbnailName = thumbnailURL.split('/')[-1]
     urllib.request.urlretrieve(songX.thumbnail,'./temp/'+thumbnailName) 
 
     #Agregar tags
-    audio = MP3('./temp/'+filename+'.mp3', ID3=ID3)
+    audio = MP3(filename, ID3=ID3)
 
     # Agrega un tag ID3 en caso de que no tenga
     try:
@@ -162,3 +160,7 @@ def putTag(songX, dataX):
                 )
             )
     audio.save()
+
+def makeZip(dirOut, dirIn):
+    pass
+
