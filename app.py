@@ -6,12 +6,10 @@
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC, TPE1, TIT2, TCON, TALB, error
 import praw
-import sys
 import subprocess
-import re
 import urllib.request
 import youtube_dl
-import os, shutil
+import os, shutil, re, subprocess, sys, datetime, zipfile
 
 # Buscando el id y el secret para usar el api de reddit de el archivo auth.txt
 
@@ -162,5 +160,16 @@ def putTag(songX, dataX):
     audio.save()
 
 def makeZip(dirOut, dirIn):
-    pass
+    today = datetime.datetime.today()
+    filename = today.strftime('SoundTrack-%B%d%Y-%H%M.zip')
+    zipName = os.path.join('./mp3', filename)
 
+    zipf = zipfile.ZipFile(zipName, 'w', zipfile.ZIP_DEFLATED)
+
+    os.chdir('temp/')
+    for root, dirs, files in os.walk('./'):
+        for file in files:
+            if file.endswith('mp3'):
+                zipf.write(os.path.join(root,file))
+            else:
+                print('Borrando', os.path.join(root,file))
